@@ -13,25 +13,32 @@ module tpumac
   );
   
   logic signed [BITS_C-1:0] Cout_add;
-  // chagne to non-literal values later
-  logic signed [15:0] AB_mul;
+  logic signed [BITS_C-1-1:0] AB_mul;
 
   always_ff @(posedge clk, negedge rst_n) begin
   
     if (~rst_n) begin
       Aout <= 0;
       Bout <= 0;
-      Cout <= 0;
     end
     else if (en) begin
       Aout <= Ain;
       Bout <= Bin;
-      Cout <= Cout_add;
     end
 
   end
 
-  assign Cout_add = WrEn ? Cin : Cout + AB_mul;
-  assign AB_mul = Ain * Bin;
+  always_ff @(posedge clk, negedge rst_n) begin
+    
+    if (~rst_n) begin
+      Cout <= 0;
+    end
+    else if (WrEn) begin
+      Cout <= Cin;
+    end
+    else if (en) begin
+      Cout <= Cout + (Ain * Bin);
+    end
+  end
 
 endmodule

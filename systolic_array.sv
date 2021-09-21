@@ -13,16 +13,14 @@ module systolic_array
    output signed [BITS_C-1:0] Cout [DIM-1:0]
    );
 
-  genvar i, j;
+  genvar i, j, k, m;
 
-  wire [BITS_AB-1:0] A_int [DIM:0][DIM-1:0];  
-  wire [BITS_AB-1:0] B_int [DIM-1:0][DIM:0];
-  wire [BITS_C-1:0] C_int [DIM-1:0][DIM-1:0];
-
-  assign A_int[0] = A;
-  assign B_int[0] = B;
+  wire signed [BITS_AB-1:0] A_int [DIM-1:0][DIM:0];  
+  wire signed [BITS_AB-1:0] B_int [DIM:0][DIM-1:0];
+  wire signed [BITS_C-1:0] C_int [DIM-1:0][DIM-1:0];
 
   generate
+
     for (i = 0; i < DIM; i++) begin
       for (j = 0; j < DIM; j++) begin
         tpumac my_tpumac(.clk(clk), .rst_n(rst_n), .en(en), 
@@ -30,15 +28,21 @@ module systolic_array
                           .Ain(A_int[i][j]), 
                           .Bin(B_int[i][j]), 
                           .Cin(Cin[j]), 
-                          .Aout(A_int[i+1][j]), 
-                          .Bout(B_int[i][j+1]), 
-                          .Cout(C_int[i][j]);
+                          .Aout(A_int[i][j+1]), 
+                          .Bout(B_int[i+1][j]), 
+                          .Cout(C_int[i][j]));
       end
     end
-  endgenerate
 
-  for (int k = 0; k < DIM; k++) begin
-    assign Cout[k] = (Crow == k) ? C_int[k] : Cout[k];
-  end
+    for (k = 0; k < DIM; k++) begin
+      assign A_int[k][0] = A[k];
+      assign B_int[0][k] = B[k];
+    end
+
+    for (m = 0; m < DIM; m = m + 1) begin
+      assign Cout[m] = C_int[Crow][m];      
+    end
+
+  endgenerate
 
 endmodule
